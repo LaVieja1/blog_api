@@ -1,26 +1,100 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const dotenv = require('dotenv');
+dotenv.config();
+const passport = require("passport");
+const JwtStrategy = require("passport-jwt").Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const compression = require("compression");
+const helmet = require("helmet");
+const cors = require('cors');
+dotenv.config();
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const User = require('./models/User');
 
-var app = express();
+const usersRouter = require('./routes/users');
+const apiRouter = require('./routes/api');
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+const mongoose = require("mongoose");
+mongoose.set("strictQuery", false);
+
+//database connection
+const mongoDB = process.env.MONGODB_URL
+
+main().catch((err) => console.log(err));
+async function main() {
+  await mongoose.connect(mongoDB);
+  console.log('Conectado a MongoDB');
+}
+
+const app = express();
+
+//MIDDLEWARE
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://blog-public-two.vercel.app", "https://blog-user-beta.vercel.app"],
+    credentials: true,
+  })
+);
+
+const RateLimit = require("express-rate-limit");
+const limiter = RateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 20,
+});
+// Apply rate limiter to all requests
+app.use(limiter);
+
+app.use(compression()); // Compress all routes
+
+// Add helmet to the middleware chain.
+// Set CSP headers to allow our Bootstrap and Jquery to be served
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      "script-src": ["'self'", "code.jquery.com", "cdn.jsdelivr.net"],
+    },
+  }),
+);
+
+//added auth route
+
+
+const opts = {}
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.secretOrKey = process.env.SECRET_KEY; //normally store this in process.env.secret
+//opts.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('JWT')
+
+passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
+
+  try {
+    let userDb = User.findOne({userName: jwt_payload.email})
+
+      if (userDb) {
+          return done(null, true);
+      } else {
+          return done(null, false);
+
+      }
+    } catch (error) {
+      console.log(error)
+  }
+}))
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname)));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//MIDDLEWARE ROUTE
+
+//app.use('/api', apiRouter);
+app.use('/users', passport.authenticate('jwt', {session: false}), usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
