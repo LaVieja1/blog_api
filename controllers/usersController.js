@@ -12,18 +12,18 @@ let storage = multer.diskStorage({
         cb(null, './uploads');
     },
     filename: function (req, file, cb) {
-        let extArray = file.mimetype.split('/');
-        let extesion = extArray[extArray.length - 1];
-        cb(null, file.fieldname + '-' + Date.now() + '.' + extesion);
+        let extArray = file.mimetype.split("/");
+        let extension = extArray[extArray.length - 1];
+        cb(null, file.fieldname + '-' + Date.now() + '.' + extension)
     }
-});
+})
 
 // only allow jpeg, jpg and png files
 
 const fileFilter = (req, file, cb) => {
     if(file.mimetype ==='image/jpeg' || file.mimetype ==='image/jpg' || file.mimetype ==='image/png'){
         cb(null,true);
-    }else{
+    } else {
         cb(null, false);
     }
 }
@@ -113,12 +113,12 @@ exports.delete_post = asyncHandler(async (req, res, next) => {
 
         //Delete pic file
         if (picPost.image) {
-            fs.unlink('./uploads/' + picPost.image, (err) => {
-                if (err) {
-                    throw err;
-                }
+            fs.unlink("./uploads/" + picPost.image, (err) => {
+            if (err) {
+                throw err;
+            }
 
-                console.log('Delete File successful')
+            console.log("Delete File successful.");
             });
         }
 
@@ -229,6 +229,7 @@ exports.image_delete = asyncHandler(async (req, res, next) => {
     }
 });
 
+// ADD IMAGE TO POST
 exports.image_post = [
     // Handle single file upload with field name "image"
     upload.single("image"),
