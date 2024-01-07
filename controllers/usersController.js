@@ -9,7 +9,7 @@ const fs = require('fs');
 
 let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './uploads');
+        cb(null, '../uploads');
     },
     filename: function (req, file, cb) {
         let extArray = file.mimetype.split("/");
@@ -210,7 +210,7 @@ exports.image_delete = asyncHandler(async (req, res, next) => {
 
         //Delete pic file
         if (picPost.image) {
-            fs.unlink("./uploads/" + picPost.image, (err) => {
+            fs.unlink("../uploads/" + picPost.image, (err) => {
                 if (err) {
                     throw err;
                 }
