@@ -93,7 +93,7 @@ app.use(express.static(path.join(__dirname)));
 
 //MIDDLEWARE ROUTE
 
-//app.use('/api', apiRouter);
+app.use('/api', apiRouter);
 app.use('/users', passport.authenticate('jwt', {session: false}), usersRouter);
 
 // catch 404 and forward to error handler
