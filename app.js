@@ -36,7 +36,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://blog-public-two.vercel.app", "https://blog-user-beta.vercel.app"],
+    origin: ["http://localhost:5173", "https://blog-client-jet.vercel.app", "https://blog-cms-virid-pi.vercel.app"],
     credentials: true,
   })
 );
